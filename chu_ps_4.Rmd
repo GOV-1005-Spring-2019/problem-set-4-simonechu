@@ -248,4 +248,4 @@ male_educ <- nc_09 %>%
 
 ### Collaborators
 
-Margaret Sun, Igor Morzan
+Margaret Sun, Igor Morzan    
