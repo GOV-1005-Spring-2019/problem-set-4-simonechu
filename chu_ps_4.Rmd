@@ -86,7 +86,12 @@ for_chart <- read_csv(
                    w_LV = col_double(),
                    w_RV = col_double(),
                    final_weight = col_double(),
-                   timestamp = col_datetime(format = "")))
+                   timestamp = col_datetime(format = ""))) %>%
+  filter(!is.na(file_race),
+         !is.na(response),
+         !is.na(ager == "[DO NOT READ] Refused"),
+         !is.na(final_weight),
+         educ != "[DO NOT READ] Refused") 
 
 for_chart %>% 
   select(response, race_eth, final_weight) %>% 
@@ -113,13 +118,13 @@ for_chart %>%
       Und = "UND."
       ) %>%
   
-    # cols_label(
-    #   White = "White",
-    #   Black = "Black",
-    #   Hispanic = "Hispanic",
-    #   Asian = "Asian",
-    #   Other = "Other"
-    #   ) %>%
+    # tab_style(
+    #   style = cells_styles(
+    #     bkgd_color = "red"), 
+    #   location = cells_data(
+    #     columns = Rep,
+    #     rows = "White", "Hispanic", "Asian"
+    #   ))   %>%
   
     fmt_percent(columns = vars(Dem, Rep, Und),
                 decimals = 0)
@@ -128,7 +133,18 @@ for_chart %>%
 ```
 
 ### Question 3
+```{r, echo=FALSE, message=FALSE}
+nc_09 %>%
+  filter(educ %in% c("Graduate or Professional Degree", "Bachelors' Degree", "Some college or trade school", "High school", "Grade school")) %>%
+  ggplot(mapping = aes(x = final_weight, y = educ)) + 
+  geom_violin(scale = "area") + 
+   labs(title = "More Educated Matter Less in North Carolina 9th",
+       subtitle = "Poll gives more weight to people who are less likely to participate in polls",
+       caption = "New York Times Upshot/Siena College 2018 live polls") + 
+  xlab("Weight Given to Respondent in Calculating Poll Results") + 
+  ylab(NULL)
 
+```
 
 ### Question 4
 
