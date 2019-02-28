@@ -24,35 +24,66 @@ nc_09 <- read_csv("ps_4_elections-poll-nc09-3.csv") %>%
          !is.na(final_weight),
          educ != "[DO NOT READ] Refused") 
 
+# The above filters are for cleaning up columns that I thought might impact later 
+# questions (no one likes missing values!). I went back and updated them as I worked 
+# through the madlibs. 
+
 n_dem_support <- nc_09 %>%
   filter(response == "Dem") %>%
   count()
   
+# To figure out how many were supporting the Democratic candidate, I just 
+# counted the number of responses that went with the Democratic candidate. 
+
 only_reps <- nc_09 %>%
     filter(response == "Rep") %>%
     count()
+
+# To set up a function that finds the difference between the number of 
+# voters who support the Republican candidate and number of of voters who
+# were still undecided, I first needed to find the number of voters who 
+# support the Republican candidate. 
 
 only_und <- nc_09 %>%
   filter(response == "Und") %>%
   count()
 
+# Then I found the number of voters who were still undecided.
+
 rep_vs_und <- (only_reps) - (only_und) 
+
+# Finally, I took the difference between the voters who supported the Republican
+# candidate and the undecided voters to answer the question.  
 
 gender_compare <- nc_09 %>%
   select(gender, gender_combined) %>%
   filter(gender != gender_combined) %>%
   count()
-  
+
+# To find where gender and gender_combined are different, I filtered to find the
+# places where they didn't match up, and then counted those results. 
+
 race_eth_v_file_race <- nc_09 %>%
   filter(race_eth == "White") %>%
   filter(file_race_black != "White") %>%
   count()
+
+# Finding the places where respondents' race did not match up was also easy. 
+# I used a filter to first find all the white respondents, then ran it against
+# the file_race_black column to count all the differences.
+# On another note: how many times did the pollsters ask these people for their 
+# demographic information? Why are there so many columns for it? 
 
 firstDem <- nc_09 %>%
   filter(response == "Dem") %>%
   arrange(timestamp) %>%
   slice(1) %>%
   select(timestamp)
+
+# To find the difference in times between the first Republican-supporting respondent 
+# and the first Democrat-supporting respondent, I first needed to find the timestamp  
+# of when the first of each type responded. Arranging by timestamp lets me then grab 
+# the first (chronologically) timestamp.  
 
 firstRep <- nc_09 %>%
   filter(response == "Rep") %>%
@@ -61,6 +92,9 @@ firstRep <- nc_09 %>%
   select(timestamp)
 
 timediff <- round(as.numeric(firstRep - firstDem))
+
+# I used round() to round the timestamps to the nearest minute, and coerced the 
+# timestamps into a numeric so that they could be subtracted from one another. 
 
 ```
 ### Question 1
@@ -100,8 +134,8 @@ for_chart %>%
   filter(!is.na(race_eth)) %>%
   filter(response != "3") %>%
   filter(race_eth != "[DO NOT READ] Don't know/Refused") %>%
-  spread(key =  response, value = total) %>% 
-  mutate(all = Dem + Rep + Und) %>% 
+  spread(key =  response, value = total, fill = 0) %>% 
+  mutate(all = Dem + Rep + Und + 3) %>% 
   mutate(Dem = Dem / all) %>% 
   mutate(Rep = Rep / all) %>% 
   mutate(Und = Und / all) %>% 
