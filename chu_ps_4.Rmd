@@ -15,25 +15,39 @@ library(gt)
 ```
 
 ```{r madlibs, include=FALSE, message=FALSE, echo=FALSE}
-nc_09 <- read_csv("ps_4_elections-poll-nc09-3.csv")
+nc_09 <- read_csv("ps_4_elections-poll-nc09-3.csv") %>%
+  filter(!is.na(file_race),
+         !is.na(response),
+         !is.na(ager == "[DO NOT READ] Refused"),
+         !is.na(final_weight),
+         educ != "[DO NOT READ] Refused") 
 
 n_dem_support <- nc_09 %>%
   filter(response == "Dem") %>%
   count()
+  
+only_reps <- nc_09 %>%
+    filter(response == "Rep") %>%
+    count()
 
-rep_vs_und <- nc_09 %>%
-  filter(ager != "[DO NOT READ] Refused") %>%
-  filter(response == c("Rep", "Und")) %>%
-  group_by(response) %>%
-  count() %>%
-  mutate(nRep = n(Rep)) %>%
-  mutate(nUnd = n(Und)) %>%
-  select()
+only_und <- nc_09 %>%
+  filter(response == "Und") %>%
+  count()
+
+rep_vs_und <- (only_reps) - (only_und) 
+
+gender_compare <- nc_09 %>%
+  select(gender, gender_combined) %>%
+  filter(gender != gender_combined) %>%
+  count()
   
 race_eth_v_file_race <- nc_09 %>%
   filter(race_eth == "White") %>%
   filter(file_race_black != "White") %>%
   count()
+
+1st_rep_response <- nc_09 %>%
+  
 ```
 ### Question 1
 
@@ -41,9 +55,9 @@ There were `r n_dem_support` respondents who supported the Democratic candidate.
 
 There were `r rep_vs_und` more respondents who favored the Republican candidate than who were Undecided.
 
-There are two gender variables (gender and gender_combined). There are X individuals for whom these variables have different values.
+There are two gender variables (`gender` and `gender_combined`). There are `r gender_compare` individuals for whom these variables have different values.
 
-There are `r race_eth_v_file_race` respondents listed as “White” under race_eth who are not listed as “White” under file_race_black.
+There are `r race_eth_v_file_race` respondents listed as “White” under `race_eth` who are not listed as “White” under `file_race_black`.
 
 The first response of Rep came X minutes (rounded to the nearest minute) before the first response of Dem.
 
@@ -61,3 +75,9 @@ nc_09 %>%
 ```
 
 ### Question 3
+
+
+
+### Collaborators
+
+Margaret Sun, Igor Morzan
