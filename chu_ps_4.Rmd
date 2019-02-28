@@ -121,26 +121,42 @@ for_chart <- read_csv(
                    w_RV = col_double(),
                    final_weight = col_double(),
                    timestamp = col_datetime(format = ""))) %>%
+ 
+   # This is based on the class notes, with columns defined to make them easier to
+   # work with later on. 
+  
   filter(!is.na(file_race),
          !is.na(response),
          !is.na(ager == "[DO NOT READ] Refused"),
          !is.na(final_weight),
          educ != "[DO NOT READ] Refused") 
 
+    # I brought back some of my filters from the madlibs to clean up the data and 
+    # filter out any responses that are incomplete or marked "DO NOT READ".
+
 for_chart %>% 
   select(response, race_eth, final_weight) %>% 
+    # These are the relevant factors that will affect the table. 
   group_by(race_eth, response) %>% 
+    # The actual cells of the table are filled in with information of response rate
+    # by race/ethnicity. 
   summarize(total = sum(final_weight)) %>%   
   filter(!is.na(race_eth)) %>%
   filter(response != "3") %>%
   filter(race_eth != "[DO NOT READ] Don't know/Refused") %>%
-  spread(key =  response, value = total, fill = 0) %>% 
+    # Added these filters to try and clean up the data for the table. 
+  spread(key = response, value = total, fill = 0) %>% 
   mutate(all = Dem + Rep + Und + 3) %>% 
+    # This creates the denominator by which I'll divide to find percentages. I had to 
+    # include "3" because for some reason without it, the results for Asians didn't 
+    # show up at all. 
   mutate(Dem = Dem / all) %>% 
   mutate(Rep = Rep / all) %>% 
   mutate(Und = Und / all) %>% 
+    # These calculate the percentages for each category. 
   select(-all) %>% 
   ungroup() %>% 
+    # As noted, necessary to ungroup by race_eth and response! 
   gt() %>% 
     tab_header(
       title = "Polling Results in North Carolina 9th Congressional District") %>% 
@@ -152,35 +168,82 @@ for_chart %>%
       Und = "UND."
       ) %>%
   
-    # tab_style(
-    #   style = cells_styles(
-    #     bkgd_color = "red"), 
-    #   location = cells_data(
-    #     columns = Rep,
-    #     rows = "White", "Hispanic", "Asian"
-    #   ))   %>%
+    # For labeling columns and titles! 
   
     fmt_percent(columns = vars(Dem, Rep, Und),
                 decimals = 0)
+    
+    # This makes it so that the percentages don't have decimals in them. 
 
 
 ```
 
 ### Question 3
-```{r, echo=FALSE, message=FALSE}
-nc_09 %>%
-  filter(educ %in% c("Graduate or Professional Degree", "Bachelors' Degree", "Some college or trade school", "High school", "Grade school")) %>%
-  ggplot(mapping = aes(x = final_weight, y = educ)) + 
-  geom_violin(scale = "area") + 
-   labs(title = "More Educated Matter Less in North Carolina 9th",
-       subtitle = "Poll gives more weight to people who are less likely to participate in polls",
-       caption = "New York Times Upshot/Siena College 2018 live polls") + 
-  xlab("Weight Given to Respondent in Calculating Poll Results") + 
-  ylab(NULL)
 
+```{r, echo=FALSE, message=FALSE}
+
+ggplot(nc_09, aes(x = educ, y = final_weight)) +
+  geom_violin() +
+  
+    # The example graph was a violin graph, so geom_violin() it is. 
+  
+  geom_jitter(alpha = 0.5, width = 0.2, size = 0.8) +
+  
+    # This puts the dots on top of the violin plot. 
+  
+  coord_flip() + 
+  
+    # This changes the axes so I can manipulate them more easily (without this, R tells me
+    # that I can't have overlapping x plots). 
+  
+  scale_x_discrete(limits=c("Grade school", "High school", "Some college or trade school", "Bachelors' degree", "Graduate or Professional Degree")) +
+  
+  xlab(NULL) +
+  
+  ylab("Weight Given to Respondent in Calculating Poll Results") +
+  
+  labs(title = "More Educated Matter Less in North Carolina 9th",
+       subtitle = "Poll gives more weight to people who are less likely to participate in polls",
+       caption = "New York Times Upshot/Siena College 2018 live polls")
+  
+    # Getting the titles and labels to match up with the example! 
 ```
 
 ### Question 4
+```{r, echo=FALSE, message=FALSE}
+female_educ <- nc_09 %>%
+  filter(gender == "Female",
+         educ != "[DO NOT READ] Refused") %>%
+  select(gender, educ)
+
+  # Creating a data frame for only female education statistics. 
+
+male_educ <- nc_09 %>%
+  filter(gender == "Male",
+         educ != "[DO NOT READ] Refused") %>%
+  select(gender, educ)
+
+  # Creating a data frame for only male education statistics. 
+  
+
+  ggplot(nc_09, mapping = aes(x = educ)) +
+  geom_bar(data = male_educ, width = 0.8, fill = "black") + 
+  geom_bar(data = female_educ, width = 0.3, fill = "pink") + 
+    
+      # You can overlay two bar graphs if you have them draw from separate data frames!
+    
+    coord_flip() + 
+    
+      # Used coord_flip to make education level labels easier to read. 
+    
+  labs(title = "Education levels of surveyed women vs. men",
+       subtitle = "Women in pink, men in black",
+       caption = "New York Times Upshot/Siena College 2018 live polls") + 
+    ylab("Number of respondents") + 
+    xlab("Level of education")
+
+```
+
 
 
 ### Collaborators
