@@ -12,6 +12,8 @@ library(ggplot2)
 library(janitor)
 library(knitr)
 library(gt)
+library(lubridate)
+library(base)
 ```
 
 ```{r madlibs, include=FALSE, message=FALSE, echo=FALSE}
@@ -46,7 +48,29 @@ race_eth_v_file_race <- nc_09 %>%
   filter(file_race_black != "White") %>%
   count()
 
-1st_rep_response <- nc_09 %>%
+firstDem <- nc_09 %>%
+  filter(response == "Dem") %>%
+  arrange(timestamp) %>%
+  slice(1) %>%
+  select(timestamp)
+
+firstRep <- nc_09 %>%
+  filter(response == "Rep") %>%
+  arrange(timestamp) %>%
+  slice(1) %>%
+  select(timestamp)
+
+timediff <- round(as.numeric(firstRep - firstDem))
+
+timediff
+  # as.numeric() %>%
+  # round()
+
+# as.numeric(timestamp) %>%
+#   ymd_hms(timestamp) %>%
+#   arrange(desc(timestamp))
+  
+
   
 ```
 ### Question 1
@@ -59,7 +83,7 @@ There are two gender variables (`gender` and `gender_combined`). There are `r ge
 
 There are `r race_eth_v_file_race` respondents listed as “White” under `race_eth` who are not listed as “White” under `file_race_black`.
 
-The first response of Rep came X minutes (rounded to the nearest minute) before the first response of Dem.
+The first response of Rep came `r timediff` minutes (rounded to the nearest minute) before the first response of Dem.
 
 ### Question 2
 ```{r chart, include=FALSE, echo=FALSE, message=FALSE}
@@ -67,11 +91,11 @@ nc_09 %>%
   filter(race_eth == file_race) %>%
   filter(response == c("Und", "Rep", "Dem")) %>%
   group_by(race_eth) %>%
-  select(race_eth, response)
+  select(race_eth, response) 
   #gt() %>%
-   # tab_header(title = "Voter Preferences by Race") %>%
-    #cols_label(race_eth = "Race",
-    #  response = "Party")
+   #tab_header(title = "Voter Preferences by Race") %>%
+   #cols_label(race_eth = "Race",
+    #          response = "Party")
 ```
 
 ### Question 3
