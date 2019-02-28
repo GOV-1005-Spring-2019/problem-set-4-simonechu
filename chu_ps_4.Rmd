@@ -62,16 +62,6 @@ firstRep <- nc_09 %>%
 
 timediff <- round(as.numeric(firstRep - firstDem))
 
-timediff
-  # as.numeric() %>%
-  # round()
-
-# as.numeric(timestamp) %>%
-#   ymd_hms(timestamp) %>%
-#   arrange(desc(timestamp))
-  
-
-  
 ```
 ### Question 1
 
@@ -86,20 +76,61 @@ There are `r race_eth_v_file_race` respondents listed as “White” under `race
 The first response of Rep came `r timediff` minutes (rounded to the nearest minute) before the first response of Dem.
 
 ### Question 2
-```{r chart, include=FALSE, echo=FALSE, message=FALSE}
-nc_09 %>%
-  filter(race_eth == file_race) %>%
-  filter(response == c("Und", "Rep", "Dem")) %>%
-  group_by(race_eth) %>%
-  select(race_eth, response) 
-  #gt() %>%
-   #tab_header(title = "Voter Preferences by Race") %>%
-   #cols_label(race_eth = "Race",
-    #          response = "Party")
+```{r chart, echo=FALSE, message=FALSE}
+for_chart <- read_csv(
+  file = "ps_4_elections-poll-nc09-3.csv",
+                 col_types = cols(
+                   .default = col_character(),
+                   turnout_scale = col_double(),
+                   turnout_score = col_double(),
+                   w_LV = col_double(),
+                   w_RV = col_double(),
+                   final_weight = col_double(),
+                   timestamp = col_datetime(format = "")))
+
+for_chart %>% 
+  select(response, race_eth, final_weight) %>% 
+  group_by(race_eth, response) %>% 
+  summarize(total = sum(final_weight)) %>%   
+  filter(!is.na(race_eth)) %>%
+  filter(response != "3") %>%
+  filter(race_eth != "[DO NOT READ] Don't know/Refused") %>%
+  spread(key =  response, value = total) %>% 
+  mutate(all = Dem + Rep + Und) %>% 
+  mutate(Dem = Dem / all) %>% 
+  mutate(Rep = Rep / all) %>% 
+  mutate(Und = Und / all) %>% 
+  select(-all) %>% 
+  ungroup() %>% 
+  gt() %>% 
+    tab_header(
+      title = "Polling Results in North Carolina 9th Congressional District") %>% 
+    
+    cols_label(
+      race_eth = "Race",
+      Dem = "DEM.",
+      Rep = "REP.",
+      Und = "UND."
+      ) %>%
+  
+    # cols_label(
+    #   White = "White",
+    #   Black = "Black",
+    #   Hispanic = "Hispanic",
+    #   Asian = "Asian",
+    #   Other = "Other"
+    #   ) %>%
+  
+    fmt_percent(columns = vars(Dem, Rep, Und),
+                decimals = 0)
+
+
 ```
 
 ### Question 3
 
+
+### Question 4
 
 
 ### Collaborators
